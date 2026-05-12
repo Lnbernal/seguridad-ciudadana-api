@@ -1,53 +1,20 @@
 const express = require('express');
-
 const router = express.Router();
 
-const authMiddleware = require('../middlewares/auth.middleware');
-
 const {
-
     createReport,
     getReports,
     getReportById,
-    updateReportStatus,
+    getReportsByUser,
+    updateReport,
     deleteReport
-
 } = require('../controllers/report.controller');
 
-/*
-|--------------------------------------------------------------------------
-| RUTAS
-|--------------------------------------------------------------------------
-*/
-
-router.post(
-    '/',
-    authMiddleware,
-    createReport
-);
-
-router.get(
-    '/',
-    authMiddleware,
-    getReports
-);
-
-router.get(
-    '/:id',
-    authMiddleware,
-    getReportById
-);
-
-router.put(
-    '/:id/status',
-    authMiddleware,
-    updateReportStatus
-);
-
-router.delete(
-    '/:id',
-    authMiddleware,
-    deleteReport
-);
+router.post('/', createReport);
+router.get('/', getReports);
+router.get('/user/:id_usuario', getReportsByUser);
+router.get('/:id', getReportById);
+router.put('/:id', updateReport);
+router.delete('/:id', deleteReport);
 
 module.exports = router;

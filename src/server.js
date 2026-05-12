@@ -28,8 +28,14 @@ require('./models/Comment');
 */
 
 const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const roleRoutes = require('./routes/role.routes');
+const categoryRoutes = require('./routes/category.routes');
+const municipalityRoutes = require('./routes/municipality.routes');
+const statusRoutes = require('./routes/status.routes');
 const reportRoutes = require('./routes/report.routes');
 const evidenceRoutes = require('./routes/evidence.routes');
+const commentRoutes = require('./routes/comment.routes');
 const mapRoutes = require('./routes/map.routes');
 
 /*
@@ -58,7 +64,6 @@ const app = express();
 */
 
 app.use(cors());
-
 app.use(express.json());
 
 /*
@@ -80,23 +85,42 @@ app.use(
 |--------------------------------------------------------------------------
 */
 
+// Ruta principal
+app.get('/', (req, res) => {
+    res.json({
+        message: 'API Seguridad Ciudadana funcionando'
+    });
+});
+
+// Autenticación
 app.use('/api/auth', authRoutes);
 
+// Usuarios
+app.use('/api/users', userRoutes);
+
+// Roles
+app.use('/api/roles', roleRoutes);
+
+// Categorías
+app.use('/api/categories', categoryRoutes);
+
+// Municipios
+app.use('/api/municipalities', municipalityRoutes);
+
+// Estados de reportes
+app.use('/api/statuses', statusRoutes);
+
+// Reportes
 app.use('/api/reports', reportRoutes);
 
-app.use('/api/map', mapRoutes);
-
+// Evidencias
 app.use('/api/evidences', evidenceRoutes);
 
-app.get('/', (req, res) => {
+// Comentarios
+app.use('/api/comments', commentRoutes);
 
-    res.json({
-
-        message: 'API Seguridad Ciudadana funcionando'
-
-    });
-
-});
+// Mapa
+app.use('/api/map', mapRoutes);
 
 /*
 |--------------------------------------------------------------------------
@@ -107,63 +131,37 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {
-
     try {
-
-        /*
-        |--------------------------------------------------------------------------
-        | CONEXIÓN BD
-        |--------------------------------------------------------------------------
-        */
-
+        // Conectar a la base de datos
         await sequelize.authenticate();
-
         console.log('Base de datos conectada');
 
-        /*
-        |--------------------------------------------------------------------------
-        | SINCRONIZAR TABLAS
-        |--------------------------------------------------------------------------
-        */
-
-        await sequelize.sync({ force: true });
-
+        // Sincronizar tablas
+        await sequelize.sync({ alter: true });
         console.log('Tablas sincronizadas');
 
-        /*
-        |--------------------------------------------------------------------------
-        | SEEDERS
-        |--------------------------------------------------------------------------
-        */
-
+        // Ejecutar seeders
         await roleSeeder();
+        console.log('Roles cargados');
 
         await municipalitySeeder();
+        console.log('Municipios cargados');
 
         await categorySeeder();
+        console.log('Categorías cargadas');
 
         await statusSeeder();
+        console.log('Estados cargados');
 
-        /*
-        |--------------------------------------------------------------------------
-        | LEVANTAR SERVIDOR
-        |--------------------------------------------------------------------------
-        */
-
+        // Iniciar servidor
         app.listen(PORT, () => {
-
             console.log(`Servidor corriendo en puerto ${PORT}`);
-
         });
 
     } catch (error) {
-
         console.error('Error iniciando servidor');
-
         console.error(error);
-
     }
-
 }
 
 startServer();
