@@ -126,7 +126,7 @@ async function startServer() {
         |--------------------------------------------------------------------------
         */
 
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ force: true });
 
         console.log('Tablas sincronizadas');
 
