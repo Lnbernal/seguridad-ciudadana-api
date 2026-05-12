@@ -1,26 +1,64 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+
+require('dotenv').config();
 
 const sequelize = require('./config/database');
 
+/*
+|--------------------------------------------------------------------------
+| MODELOS
+|--------------------------------------------------------------------------
+*/
+
+require('./models/Role');
 require('./models/User');
+require('./models/Municipality');
+require('./models/Category');
+require('./models/ReportStatus');
+require('./models/Report');
+require('./models/Evidence');
+require('./models/Comment');
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS
+|--------------------------------------------------------------------------
+*/
 
 const authRoutes = require('./routes/auth.routes');
+const reportRoutes = require('./routes/report.routes');
+
+/*
+|--------------------------------------------------------------------------
+| SEEDERS
+|--------------------------------------------------------------------------
+*/
+
+const roleSeeder = require('./seeders/roleSeeder');
+const municipalitySeeder = require('./seeders/municipalitySeeder');
+const categorySeeder = require('./seeders/categorySeeder');
+const statusSeeder = require('./seeders/statusSeeder');
+
+/*
+|--------------------------------------------------------------------------
+| APP
+|--------------------------------------------------------------------------
+*/
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
-app.use(cors());
+/*
+|--------------------------------------------------------------------------
+| ENDPOINTS
+|--------------------------------------------------------------------------
+*/
 
-app.use(helmet());
-
-app.use(morgan('dev'));
-
+app.use('/api/auth', authRoutes);
+app.use('/api/reports', reportRoutes);
 app.get('/', (req, res) => {
 
     res.json({
@@ -29,21 +67,57 @@ app.get('/', (req, res) => {
 
 });
 
-app.use('/api/auth', authRoutes);
+/*
+|--------------------------------------------------------------------------
+| SERVER
+|--------------------------------------------------------------------------
+*/
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 async function startServer() {
 
     try {
 
+        /*
+        |--------------------------------------------------------------------------
+        | CONEXIÓN BD
+        |--------------------------------------------------------------------------
+        */
+
         await sequelize.authenticate();
 
         console.log('Base de datos conectada');
 
-        await sequelize.sync();
+        /*
+        |--------------------------------------------------------------------------
+        | SINCRONIZAR TABLAS
+        |--------------------------------------------------------------------------
+        */
+
+        await sequelize.sync({ alter: true });
 
         console.log('Tablas sincronizadas');
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEEDERS
+        |--------------------------------------------------------------------------
+        */
+
+        await roleSeeder();
+
+        await municipalitySeeder();
+
+        await categorySeeder();
+
+        await statusSeeder();
+
+        /*
+        |--------------------------------------------------------------------------
+        | LEVANTAR SERVIDOR
+        |--------------------------------------------------------------------------
+        */
 
         app.listen(PORT, () => {
 
@@ -52,6 +126,8 @@ async function startServer() {
         });
 
     } catch (error) {
+
+        console.error('Error iniciando servidor');
 
         console.error(error);
 
