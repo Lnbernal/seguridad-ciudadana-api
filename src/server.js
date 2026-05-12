@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -28,6 +29,8 @@ require('./models/Comment');
 
 const authRoutes = require('./routes/auth.routes');
 const reportRoutes = require('./routes/report.routes');
+const evidenceRoutes = require('./routes/evidence.routes');
+const mapRoutes = require('./routes/map.routes');
 
 /*
 |--------------------------------------------------------------------------
@@ -48,8 +51,28 @@ const statusSeeder = require('./seeders/statusSeeder');
 
 const app = express();
 
+/*
+|--------------------------------------------------------------------------
+| MIDDLEWARES
+|--------------------------------------------------------------------------
+*/
+
 app.use(cors());
+
 app.use(express.json());
+
+/*
+|--------------------------------------------------------------------------
+| ARCHIVOS ESTÁTICOS
+|--------------------------------------------------------------------------
+*/
+
+app.use(
+    '/uploads',
+    express.static(
+        path.join(__dirname, '../uploads')
+    )
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -58,11 +81,19 @@ app.use(express.json());
 */
 
 app.use('/api/auth', authRoutes);
+
 app.use('/api/reports', reportRoutes);
+
+app.use('/api/map', mapRoutes);
+
+app.use('/api/evidences', evidenceRoutes);
+
 app.get('/', (req, res) => {
 
     res.json({
+
         message: 'API Seguridad Ciudadana funcionando'
+
     });
 
 });

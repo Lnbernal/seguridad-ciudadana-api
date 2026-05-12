@@ -31,11 +31,13 @@ const Report = sequelize.define('reportes', {
     },
 
     latitud: {
-        type: DataTypes.DECIMAL(10, 8)
+        type: DataTypes.DECIMAL(10, 8),
+        allowNull: false
     },
 
     longitud: {
-        type: DataTypes.DECIMAL(11, 8)
+        type: DataTypes.DECIMAL(11, 8),
+        allowNull: false
     },
 
     direccion: {
@@ -43,13 +45,18 @@ const Report = sequelize.define('reportes', {
     },
 
     prioridad: {
-        type: DataTypes.ENUM('BAJA', 'MEDIA', 'ALTA')
+    type: DataTypes.ENUM(
+        'BAJA',
+        'MEDIA',
+        'ALTA'
+        ),
+        defaultValue: 'MEDIA'
     },
 
     anonimo: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    }
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+    },
 
 });
 
