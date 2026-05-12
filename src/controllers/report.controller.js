@@ -51,7 +51,8 @@ const getReports = async (req, res) => {
                 },
                 {
                     model: Municipality,
-                    attributes: ['id_municipio', 'nombre_municipio']
+                    as: 'municipio',
+                    attributes: ['id_municipio', 'nombre']
                 },
                 {
                     model: Evidence
@@ -98,7 +99,8 @@ const getReportById = async (req, res) => {
                 },
                 {
                     model: Municipality,
-                    attributes: ['id_municipio', 'nombre_municipio']
+                    as: 'municipio',
+                    attributes: ['id_municipio', 'nombre']
                 },
                 {
                     model: Evidence
@@ -153,7 +155,8 @@ const getReportsByUser = async (req, res) => {
                 },
                 {
                     model: Municipality,
-                    attributes: ['id_municipio', 'nombre_municipio']
+                    as: 'municipio',
+                    attributes: ['id_municipio', 'nombre']
                 }
             ],
             order: [['createdAt', 'DESC']]
