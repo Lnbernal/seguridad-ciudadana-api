@@ -153,6 +153,8 @@ async function startServer() {
         await statusSeeder();
         console.log('Estados cargados');
 
+        await adminSeeder();
+        console.log('Administrador cargado');
         // Iniciar servidor
         app.listen(PORT, () => {
             console.log(`Servidor corriendo en puerto ${PORT}`);
