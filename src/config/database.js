@@ -1,4 +1,5 @@
 //funcionamiento local
+/*
 const { Sequelize } = require('sequelize');
 
 require('dotenv').config();
@@ -23,8 +24,8 @@ const sequelize = new Sequelize(
 
 );
 
-module.exports = sequelize;
-/*
+module.exports = sequelize;*/
+
 //funcionamiento en web
 
 const { Sequelize } = require('sequelize');
@@ -59,4 +60,4 @@ const sequelize = new Sequelize(
 
 );
 
-module.exports = sequelize; */
+module.exports = sequelize; 
