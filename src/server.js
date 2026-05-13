@@ -63,8 +63,14 @@ const app = express();
 | MIDDLEWARES
 |--------------------------------------------------------------------------
 */
-
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:4200',
+    'https://seguridad-ciudadana-web.vercel.app',
+    'https://seguridad-ciudadana-kudg858g4-lnbernals-projects.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 /*
