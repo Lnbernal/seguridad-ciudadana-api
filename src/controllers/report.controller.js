@@ -1,3 +1,5 @@
+// src/controllers/report.controller.js
+
 const Report = require('../models/Report');
 const User = require('../models/User');
 const Category = require('../models/Category');
@@ -13,7 +15,46 @@ const Comment = require('../models/Comment');
 */
 const createReport = async (req, res) => {
     try {
-        const report = await Report.create(req.body);
+        console.log('Body recibido:', req.body);
+
+        // Extraer explícitamente todos los campos
+        const {
+            titulo,
+            descripcion,
+            fecha_reporte,
+            latitud,
+            longitud,
+            direccion,
+            prioridad,
+            anonimo,
+            id_categoria,
+            id_estado,
+            id_municipio,
+            id_usuario // <- ESTE CAMPO ES CLAVE
+        } = req.body;
+
+        // Validación básica
+        if (!id_usuario) {
+            return res.status(400).json({
+                message: 'El id_usuario es obligatorio'
+            });
+        }
+
+        // Crear reporte incluyendo id_usuario
+        const report = await Report.create({
+            titulo,
+            descripcion,
+            fecha_reporte,
+            latitud,
+            longitud,
+            direccion,
+            prioridad,
+            anonimo,
+            id_categoria,
+            id_estado,
+            id_municipio,
+            id_usuario
+        });
 
         res.status(201).json({
             message: 'Reporte creado correctamente',
@@ -23,7 +64,8 @@ const createReport = async (req, res) => {
         console.error('Error creando reporte:', error);
 
         res.status(500).json({
-            message: 'Error creando reporte'
+            message: 'Error creando reporte',
+            error: error.message
         });
     }
 };
@@ -39,20 +81,35 @@ const getReports = async (req, res) => {
             include: [
                 {
                     model: User,
-                    attributes: ['id_usuario', 'nombre', 'apellido', 'correo']
+                    as: 'usuario',
+                    attributes: [
+                        'id_usuario',
+                        'nombre',
+                        'apellido',
+                        'correo'
+                    ]
                 },
                 {
                     model: Category,
-                    attributes: ['id_categoria', 'nombre_categoria']
+                    attributes: [
+                        'id_categoria',
+                        'nombre_categoria'
+                    ]
                 },
                 {
                     model: ReportStatus,
-                    attributes: ['id_estado', 'nombre_estado']
+                    attributes: [
+                        'id_estado',
+                        'nombre_estado'
+                    ]
                 },
                 {
                     model: Municipality,
                     as: 'municipio',
-                    attributes: ['id_municipio', 'nombre']
+                    attributes: [
+                        'id_municipio',
+                        'nombre'
+                    ]
                 },
                 {
                     model: Evidence
@@ -87,20 +144,35 @@ const getReportById = async (req, res) => {
             include: [
                 {
                     model: User,
-                    attributes: ['id_usuario', 'nombre', 'apellido', 'correo']
+                    as: 'usuario',
+                    attributes: [
+                        'id_usuario',
+                        'nombre',
+                        'apellido',
+                        'correo'
+                    ]
                 },
                 {
                     model: Category,
-                    attributes: ['id_categoria', 'nombre_categoria']
+                    attributes: [
+                        'id_categoria',
+                        'nombre_categoria'
+                    ]
                 },
                 {
                     model: ReportStatus,
-                    attributes: ['id_estado', 'nombre_estado']
+                    attributes: [
+                        'id_estado',
+                        'nombre_estado'
+                    ]
                 },
                 {
                     model: Municipality,
                     as: 'municipio',
-                    attributes: ['id_municipio', 'nombre']
+                    attributes: [
+                        'id_municipio',
+                        'nombre'
+                    ]
                 },
                 {
                     model: Evidence
@@ -110,7 +182,11 @@ const getReportById = async (req, res) => {
                     include: [
                         {
                             model: User,
-                            attributes: ['id_usuario', 'nombre', 'apellido']
+                            attributes: [
+                                'id_usuario',
+                                'nombre',
+                                'apellido'
+                            ]
                         }
                     ]
                 }
@@ -146,17 +222,39 @@ const getReportsByUser = async (req, res) => {
             where: { id_usuario },
             include: [
                 {
+                    model: User,
+                    as: 'usuario',
+                    attributes: [
+                        'id_usuario',
+                        'nombre',
+                        'apellido',
+                        'correo'
+                    ]
+                },
+                {
                     model: Category,
-                    attributes: ['id_categoria', 'nombre_categoria']
+                    attributes: [
+                        'id_categoria',
+                        'nombre_categoria'
+                    ]
                 },
                 {
                     model: ReportStatus,
-                    attributes: ['id_estado', 'nombre_estado']
+                    attributes: [
+                        'id_estado',
+                        'nombre_estado'
+                    ]
                 },
                 {
                     model: Municipality,
                     as: 'municipio',
-                    attributes: ['id_municipio', 'nombre']
+                    attributes: [
+                        'id_municipio',
+                        'nombre'
+                    ]
+                },
+                {
+                    model: Evidence
                 }
             ],
             order: [['createdAt', 'DESC']]

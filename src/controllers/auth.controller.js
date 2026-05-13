@@ -42,7 +42,7 @@ const register = async (req, res) => {
             correo,
             contraseña: hashedPassword,
             telefono,
-            id_rol: 3
+            id_rol: 1
         });
 
         return res.status(201).json({
