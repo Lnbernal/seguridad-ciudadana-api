@@ -35,7 +35,7 @@ const register = async (req, res) => {
         // Encriptar contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        // Crear usuario con rol ciudadano (id_rol = 3)
+        // Crear usuario con rol por defecto (ADMIN = 3 en tu BD)
         const user = await User.create({
             nombre,
             apellido,
@@ -51,7 +51,9 @@ const register = async (req, res) => {
                 id_usuario: user.id_usuario,
                 nombre: user.nombre,
                 apellido: user.apellido,
-                correo: user.correo
+                correo: user.correo,
+                telefono: user.telefono,
+                id_rol: user.id_rol
             }
         });
 
@@ -73,13 +75,14 @@ const login = async (req, res) => {
     try {
         const { correo, contraseña } = req.body;
 
-        // Buscar usuario con rol
+        // Buscar usuario incluyendo su rol
         const user = await User.findOne({
             where: { correo },
             include: [
                 {
                     model: Role,
-                    as: 'role'
+                    as: 'role', // <- alias definido en User.belongsTo(...)
+                    attributes: ['id_rol', 'nombre_rol']
                 }
             ]
         });
@@ -90,7 +93,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Comparar contraseña
+        // Validar contraseña
         const validPassword = await bcrypt.compare(
             contraseña,
             user.contraseña
@@ -102,7 +105,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Generar token JWT
+        // Generar JWT
         const token = jwt.sign(
             {
                 id_usuario: user.id_usuario,
@@ -115,7 +118,11 @@ const login = async (req, res) => {
             }
         );
 
-        // Respuesta exitosa
+        // Debug opcional
+        /*console.log('Usuario autenticado:');
+        console.log(JSON.stringify(user, null, 2));*/
+
+        // Respuesta
         return res.json({
             message: 'Login exitoso',
             token,
@@ -125,7 +132,13 @@ const login = async (req, res) => {
                 apellido: user.apellido,
                 correo: user.correo,
                 telefono: user.telefono,
-                rol: user.role ? user.role.nombre : null
+                id_rol: user.id_rol,
+
+                // AQUÍ ESTÁ LA CLAVE:
+                // Tu JSON muestra que el rol viene en user.role
+                rol: user.role
+                    ? user.role.nombre_rol
+                    : null
             }
         });
 
