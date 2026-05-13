@@ -62,13 +62,8 @@ const app = express();
 | MIDDLEWARES
 |--------------------------------------------------------------------------
 */
-app.use(cors({
-  origin: [
-    'http://localhost:4200',
-    'https://tu-frontend.vercel.app'
-  ],
-  credentials: true
-}));
+
+app.use(cors());
 app.use(express.json());
 
 /*
