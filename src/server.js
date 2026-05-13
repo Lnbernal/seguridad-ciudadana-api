@@ -67,10 +67,13 @@ app.use(cors({
   origin: [
     'http://localhost:4200',
     'https://seguridad-ciudadana-web.vercel.app',
-    'https://seguridad-ciudadana-kudg858g4-lnbernals-projects.vercel.app'
+    'https://seguridad-ciudadana-hr0kbzulq-lnbernals-projects.vercel.app'
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+app.options('*', cors());
 app.use(express.json());
 
 /*
