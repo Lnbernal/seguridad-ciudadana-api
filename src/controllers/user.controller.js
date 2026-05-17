@@ -7,64 +7,44 @@ const Role = require('../models/Role');
 | CREATE
 |--------------------------------------------------------------------------
 */
+
 const createUser = async (req, res) => {
-    try {
-        const {
-            nombre,
-            apellido,
-            correo,
-            contraseña,
-            telefono,
-            direccion,
-            estado,
-            id_rol
-        } = req.body;
+  try {
+    // Extraer los datos del body y descartar cualquier id_rol enviado
+    const {
+      nombre,
+      apellido,
+      correo,
+      contraseña,
+      telefono,
+      direccion
+    } = req.body;
 
-        // Verificar si ya existe el correo
-        const existingUser = await User.findOne({
-            where: { correo }
-        });
+    // Encriptar contraseña (si ya lo haces en otro lugar, puedes omitir esto)
+    const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        if (existingUser) {
-            return res.status(400).json({
-                message: 'El correo ya está registrado'
-            });
-        }
+    // Crear usuario forzando SIEMPRE el rol CIUDADANO (id_rol = 1)
+    const user = await User.create({
+      nombre,
+      apellido,
+      correo,
+      contraseña: hashedPassword,
+      telefono,
+      direccion,
+      estado: true,
+      id_rol: 1
+    });
 
-        // Encriptar contraseña
-        const hashedPassword = await bcrypt.hash(contraseña, 10);
-
-        const user = await User.create({
-            nombre,
-            apellido,
-            correo,
-            contraseña: hashedPassword,
-            telefono,
-            direccion,
-            estado,
-            id_rol
-        });
-
-        res.status(201).json({
-            message: 'Usuario creado correctamente',
-            user: {
-                id_usuario: user.id_usuario,
-                nombre: user.nombre,
-                apellido: user.apellido,
-                correo: user.correo,
-                telefono: user.telefono,
-                direccion: user.direccion,
-                estado: user.estado,
-                id_rol: user.id_rol
-            }
-        });
-    } catch (error) {
-        console.error('Error creando usuario:', error);
-
-        res.status(500).json({
-            message: 'Error creando usuario'
-        });
-    }
+    res.status(201).json({
+      message: 'Usuario creado correctamente',
+      user
+    });
+  } catch (error) {
+    console.error('Error creando usuario:', error);
+    res.status(500).json({
+      message: 'Error creando usuario'
+    });
+  }
 };
 
 /*
