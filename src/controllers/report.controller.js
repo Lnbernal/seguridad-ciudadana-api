@@ -62,7 +62,7 @@ const createReport = async (req, res) => {
         await enviarTelegram({
             titulo,
             descripcion,
-            direccion,
+            id_municipio,
             longitud,
             latitud,
             prioridad
