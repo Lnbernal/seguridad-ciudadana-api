@@ -57,9 +57,10 @@ const getUsers = async (req, res) => {
             include: [
                 {
                     model: Role,
+                    as: 'role',
                     attributes: ['id_rol', 'nombre_rol']
                 }
-            ],
+            ],  // ← faltaba esta coma
             order: [['id_usuario', 'ASC']]
         });
 
@@ -88,6 +89,7 @@ const getUserById = async (req, res) => {
             include: [
                 {
                     model: Role,
+                    as: 'role',               // ← añadido para consistencia
                     attributes: ['id_rol', 'nombre_rol']
                 }
             ]

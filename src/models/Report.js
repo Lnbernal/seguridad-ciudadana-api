@@ -93,3 +93,7 @@ Report.belongsTo(Municipality, {
 });
 
 module.exports = Report;
+
+Report.belongsTo(User, { foreignKey: 'operador_id', as: 'operador' });
+Report.belongsTo(User, { foreignKey: 'funcionario_id', as: 'funcionario' });
+Report.belongsTo(ReportStatus, { foreignKey: 'id_estado', as: 'estado' });

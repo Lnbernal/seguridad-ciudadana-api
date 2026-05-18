@@ -107,16 +107,17 @@ const login = async (req, res) => {
 
         // Generar JWT
         const token = jwt.sign(
-            {
-                id_usuario: user.id_usuario,
-                correo: user.correo,
-                id_rol: user.id_rol
-            },
-            process.env.JWT_SECRET || 'secret123',
-            {
-                expiresIn: '7d'
-            }
-        );
+    {
+        id_usuario: user.id_usuario,
+        correo: user.correo,
+        rol: user.role?.nombre_rol || 'CIUDADANO', // ← nombre del rol en string
+        id_rol: user.id_rol // opcional, lo dejamos por si acaso
+    },
+    process.env.JWT_SECRET || 'secret123',
+    {
+        expiresIn: '7d'
+    }
+);
 
         // Debug opcional
         /*console.log('Usuario autenticado:');
