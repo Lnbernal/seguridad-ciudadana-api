@@ -6,13 +6,13 @@ const CHAT_ID = '-1003991281670';
 async function enviarTelegram(reporte) {
 
     const mensaje = `
-NUEVO REPORTE CIUDADANO
+Desde la localidad de ${reporte.direccion} se ha reportado un nuevo incidente.
 
 Título: ${reporte.titulo}
 
 Descripción:
 ${reporte.descripcion}
-
+${reporte.latitud && reporte.longitud ? `Ubicación: https://www.google.com/maps?q=${reporte.latitud},${reporte.longitud}` : 'Ubicación no disponible'}
 Dirección:
 ${reporte.direccion}
 

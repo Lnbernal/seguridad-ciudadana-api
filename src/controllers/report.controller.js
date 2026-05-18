@@ -63,6 +63,8 @@ const createReport = async (req, res) => {
             titulo,
             descripcion,
             direccion,
+            longitud,
+            latitud,
             prioridad
         });
 
