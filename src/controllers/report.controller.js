@@ -8,6 +8,8 @@ const Municipality = require('../models/Municipality');
 const Evidence = require('../models/Evidence');
 const Comment = require('../models/Comment');
 
+const enviarTelegram = require('../services/telegram');
+
 /*
 |--------------------------------------------------------------------------
 | CREATE
@@ -54,6 +56,14 @@ const createReport = async (req, res) => {
             id_estado,
             id_municipio,
             id_usuario
+        });
+
+        // ENVIAR TELEGRAM
+        await enviarTelegram({
+            titulo,
+            descripcion,
+            direccion,
+            prioridad
         });
 
         res.status(201).json({
