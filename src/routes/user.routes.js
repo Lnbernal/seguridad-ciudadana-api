@@ -8,7 +8,8 @@ const {
   getUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  changePassword
 } = require('../controllers/user.controller');
 
 const verifyToken = require('../middlewares/auth.middleware');
@@ -49,5 +50,8 @@ router.delete(
   authorizeRoles('ADMIN'),
   deleteUser
 );
+
+// ── Cualquier usuario autenticado puede cambiar SU propia contraseña ──
+router.put('/:id/password', verifyToken, changePassword);
 
 module.exports = router;

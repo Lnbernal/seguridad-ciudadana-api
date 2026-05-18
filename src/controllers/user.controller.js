@@ -7,10 +7,8 @@ const Role = require('../models/Role');
 | CREATE
 |--------------------------------------------------------------------------
 */
-
 const createUser = async (req, res) => {
   try {
-    // Extraer los datos del body y descartar cualquier id_rol enviado
     const {
       nombre,
       apellido,
@@ -20,10 +18,8 @@ const createUser = async (req, res) => {
       direccion
     } = req.body;
 
-    // Encriptar contraseña (si ya lo haces en otro lugar, puedes omitir esto)
     const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-    // Crear usuario forzando SIEMPRE el rol CIUDADANO (id_rol = 1)
     const user = await User.create({
       nombre,
       apellido,
@@ -70,7 +66,6 @@ const getUsers = async (req, res) => {
         res.json(users);
     } catch (error) {
         console.error('Error obteniendo usuarios:', error);
-
         res.status(500).json({
             message: 'Error obteniendo usuarios'
         });
@@ -107,7 +102,6 @@ const getUserById = async (req, res) => {
         res.json(user);
     } catch (error) {
         console.error('Error obteniendo usuario:', error);
-
         res.status(500).json({
             message: 'Error obteniendo usuario'
         });
@@ -168,9 +162,86 @@ const updateUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error actualizando usuario:', error);
-
         res.status(500).json({
             message: 'Error actualizando usuario'
+        });
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE ROLE (Solo Admin)
+|--------------------------------------------------------------------------
+*/
+const updateRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { id_rol } = req.body;
+
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        await user.update({ id_rol });
+
+        res.json({
+            message: 'Rol actualizado correctamente'
+        });
+    } catch (error) {
+        console.error('Error actualizando rol:', error);
+        res.status(500).json({
+            message: 'Error actualizando rol'
+        });
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| CHANGE PASSWORD (Usuario autenticado)
+|--------------------------------------------------------------------------
+*/
+const changePassword = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { currentPassword, newPassword } = req.body;
+
+        // Buscar usuario CON contraseña
+        const user = await User.findByPk(id, {
+            attributes: { include: ['contraseña'] }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        // Verificar contraseña actual
+        const isMatch = await bcrypt.compare(currentPassword, user.contraseña);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: 'La contraseña actual es incorrecta'
+            });
+        }
+
+        // Encriptar nueva contraseña
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Actualizar
+        await user.update({ contraseña: hashedPassword });
+
+        res.json({
+            message: 'Contraseña actualizada correctamente'
+        });
+    } catch (error) {
+        console.error('Error cambiando contraseña:', error);
+        res.status(500).json({
+            message: 'Error cambiando contraseña'
         });
     }
 };
@@ -199,7 +270,6 @@ const deleteUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error eliminando usuario:', error);
-
         res.status(500).json({
             message: 'Error eliminando usuario'
         });
@@ -211,5 +281,7 @@ module.exports = {
     getUsers,
     getUserById,
     updateUser,
+    updateRole,
+    changePassword,
     deleteUser
 };
