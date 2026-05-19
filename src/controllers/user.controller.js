@@ -60,7 +60,7 @@ const getUsers = async (req, res) => {
                     as: 'role',
                     attributes: ['id_rol', 'nombre_rol']
                 }
-            ],  // ← faltaba esta coma
+            ],
             order: [['id_usuario', 'ASC']]
         });
 
@@ -89,7 +89,7 @@ const getUserById = async (req, res) => {
             include: [
                 {
                     model: Role,
-                    as: 'role',               // ← añadido para consistencia
+                    as: 'role',
                     attributes: ['id_rol', 'nombre_rol']
                 }
             ]
@@ -142,7 +142,7 @@ const updateUser = async (req, res) => {
 
             if (existingUser) {
                 return res.status(400).json({
-                    message: 'El correo ya está registrado'
+                    message: 'El correo ya esta registrado'
                 });
             }
         }
@@ -212,9 +212,7 @@ const changePassword = async (req, res) => {
         const { currentPassword, newPassword } = req.body;
 
         // Buscar usuario CON contraseña
-        const user = await User.findByPk(id, {
-            attributes: { include: ['contraseña'] }
-        });
+        const user = await User.findByPk(id);
 
         if (!user) {
             return res.status(404).json({
