@@ -6,7 +6,9 @@ const roleSeeder = async () => {
         'CIUDADANO',
         'OPERADOR',
         'ADMIN',
-        'ALCALDIA'
+        'ALCALDIA',
+        'SUPERVISOR',
+        'FUNCIONARIO'
     ];
 
     for (const rol of roles) {
