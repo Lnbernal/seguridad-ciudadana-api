@@ -18,9 +18,9 @@ const sequelize = new Sequelize(
     }
 
 );
-*/
-module.exports = sequelize;
 
+module.exports = sequelize;
+*/
 //funcionamiento en web
 
 const { Sequelize } = require('sequelize');
