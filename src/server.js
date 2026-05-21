@@ -6,6 +6,8 @@ require('dotenv').config();
 
 const sequelize = require('./config/database');
 
+const preguntarGemini = require('./services/gemini');
+
 /*
 |--------------------------------------------------------------------------
 | MODELOS
@@ -63,18 +65,71 @@ const app = express();
 | MIDDLEWARES
 |--------------------------------------------------------------------------
 */
+
 app.use(cors({
-  origin: [
-    'http://localhost:4200',
-    'https://seguridad-ciudadana-web.vercel.app',
-    'https://seguridad-ciudadana-hr0kbzulq-lnbernals-projects.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+    origin: [
+        'http://localhost:4200',
+        'https://seguridad-ciudadana-web.vercel.app',
+        'https://seguridad-ciudadana-hr0kbzulq-lnbernals-projects.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 
 app.use(express.json());
+
+/*
+|--------------------------------------------------------------------------
+| RESPUESTAS LOCALES CHATBOT
+|--------------------------------------------------------------------------
+*/
+
+function respuestaLocal(mensaje) {
+
+    const texto = mensaje.toLowerCase();
+
+    if (
+        texto.includes('robo') ||
+        texto.includes('hurto') ||
+        texto.includes('atraco')
+    ) {
+
+        return 'Si estás en una emergencia comunícate inmediatamente con la Policía Nacional al 123.';
+    }
+
+    if (
+        texto.includes('incendio') ||
+        texto.includes('fuego')
+    ) {
+
+        return 'Comunícate inmediatamente con bomberos y al número de emergencias 123.';
+    }
+
+    if (
+        texto.includes('violencia')
+    ) {
+
+        return 'Si existe peligro inmediato comunícate con las autoridades lo antes posible.';
+    }
+
+    if (
+        texto.includes('hola') ||
+        texto.includes('buenas')
+    ) {
+
+        return 'Hola, soy el asistente virtual de YoReporto. ¿En qué puedo ayudarte?';
+    }
+
+    if (
+        texto.includes('reporte')
+    ) {
+
+        return 'Puedes crear un reporte desde la sección principal seleccionando la categoría del incidente.';
+    }
+
+    return null;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -97,9 +152,73 @@ app.use(
 
 // Ruta principal
 app.get('/', (req, res) => {
+
     res.json({
         message: 'API Seguridad Ciudadana funcionando'
     });
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| CHATBOT
+|--------------------------------------------------------------------------
+*/
+
+app.post('/api/chat', async (req, res) => {
+
+    try {
+
+        const { mensaje } = req.body;
+
+        if (!mensaje) {
+
+            return res.status(400).json({
+                error: 'El mensaje es obligatorio'
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPUESTA LOCAL
+        |--------------------------------------------------------------------------
+        */
+
+        const local = respuestaLocal(mensaje);
+
+        if (local) {
+
+            return res.json({
+                respuesta: local,
+                tipo: 'local'
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GEMINI
+        |--------------------------------------------------------------------------
+        */
+
+        const respuesta = await preguntarGemini(mensaje);
+
+        return res.json({
+            respuesta,
+            tipo: 'gemini'
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            error: 'Error procesando mensaje'
+        });
+
+    }
+
 });
 
 // Autenticación
@@ -134,6 +253,20 @@ app.use('/api/map', mapRoutes);
 
 /*
 |--------------------------------------------------------------------------
+| 404
+|--------------------------------------------------------------------------
+*/
+
+app.use((req, res) => {
+
+    res.status(404).json({
+        error: 'Ruta no encontrada'
+    });
+
+});
+
+/*
+|--------------------------------------------------------------------------
 | SERVER
 |--------------------------------------------------------------------------
 */
@@ -141,7 +274,9 @@ app.use('/api/map', mapRoutes);
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {
+
     try {
+
         // Conectar a la base de datos
         await sequelize.authenticate();
         console.log('Base de datos conectada');
@@ -165,15 +300,23 @@ async function startServer() {
 
         await AdminSeeder();
         console.log('Administrador cargado');
+
         // Iniciar servidor
         app.listen(PORT, () => {
-            console.log(`Servidor corriendo en puerto ${PORT}`);
+
+            console.log(
+                `Servidor corriendo en puerto ${PORT}`
+            );
+
         });
 
     } catch (error) {
+
         console.error('Error iniciando servidor');
         console.error(error);
+
     }
+
 }
 
 startServer();
