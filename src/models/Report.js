@@ -58,6 +58,16 @@ const Report = sequelize.define('reportes', {
     defaultValue: false
     },
 
+    operador_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+
+    funcionario_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+
 });
 
 User.hasMany(Report, {

@@ -11,6 +11,15 @@ const TRANSICIONES = require('../config/transiciones'); // ← NUEVO
 
 const enviarTelegram = require('../services/telegram');
 
+const normalizarEstado = (estado) =>
+    (estado || '')
+        .toString()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/\s+/g, '_');
+
 /*
 |--------------------------------------------------------------------------
 | CREATE
@@ -328,7 +337,7 @@ const deleteReport = async (req, res) => {
 const changeStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nuevo_estado, funcionario_id } = req.body;
+        const { nuevo_estado } = req.body;
 
         // 1. Obtener reporte actual con estado y funcionario asignado
         const reporte = await Report.findByPk(id, {
@@ -342,34 +351,34 @@ const changeStatus = async (req, res) => {
             return res.status(404).json({ message: 'Reporte no encontrado' });
         }
 
-        const estadoActual = reporte.ReportStatus?.nombre_estado;
+        const estadoActualNombre =
+            reporte.estados_reporte?.nombre_estado ||
+            reporte.ReportStatus?.nombre_estado ||
+            reporte.estado?.nombre_estado;
+
+        const estadoActual = normalizarEstado(estadoActualNombre);
         if (!estadoActual) {
             return res.status(500).json({ message: 'El reporte no tiene estado asociado' });
         }
 
         // 2. Verificar permisos según transiciones
+        const nuevoEstado = normalizarEstado(nuevo_estado);
         const transicionesPorRol = TRANSICIONES[estadoActual];
         if (!transicionesPorRol) {
             return res.status(400).json({ message: `No se permiten cambios desde '${estadoActual}'` });
         }
 
-        const rolesPermitidos = Object.keys(transicionesPorRol);
-        const rolUsuario = req.user.rol;
-
-        if (!rolesPermitidos.includes(rolUsuario)) {
-            return res.status(403).json({ message: 'No tienes permiso para cambiar este reporte' });
-        }
-
-        const estadosPermitidos = transicionesPorRol[rolUsuario];
-        if (!estadosPermitidos.includes(nuevo_estado)) {
+        const rolUsuario = normalizarEstado(req.user.rol);
+        const estadosPermitidos = transicionesPorRol[rolUsuario] || [];
+        if (!estadosPermitidos.includes(nuevoEstado)) {
             return res.status(400).json({
-                message: `No puedes pasar de '${estadoActual}' a '${nuevo_estado}' con tu rol`
+                message: `No puedes pasar de '${estadoActual}' a '${nuevoEstado}' con tu rol`
             });
         }
 
         // 3. Buscar ID del nuevo estado
         const estadoDestino = await ReportStatus.findOne({
-            where: { nombre_estado: nuevo_estado }
+            where: { nombre_estado: nuevoEstado }
         });
         if (!estadoDestino) {
             return res.status(400).json({ message: 'El estado especificado no existe' });
@@ -378,33 +387,12 @@ const changeStatus = async (req, res) => {
         // 4. Construir objeto de actualización
         const updateData = { id_estado: estadoDestino.id_estado };
 
-        if (nuevo_estado === 'VISUALIZADO') {
-            updateData.operador_id = req.user.id_usuario || req.user.id; // Ajusta según tu payload JWT
+        if (estadoActual === 'PENDIENTE' && nuevoEstado === 'EN_PROCESO') {
+            updateData.operador_id = req.user.id_usuario || req.user.id;
         }
-
-        if (nuevo_estado === 'ASIGNADO') {
-            if (!funcionario_id) {
-                return res.status(400).json({ message: 'Se requiere funcionario_id para asignar' });
-            }
-            const funcionario = await User.findOne({
-                where: { id_usuario: funcionario_id, rol: 'FUNCIONARIO' }
-            });
-            if (!funcionario) {
-                return res.status(400).json({ message: 'El usuario no es un funcionario válido' });
-            }
-            updateData.funcionario_id = funcionario_id;
-        }
-
-        if (nuevo_estado === 'EN_PROCESO' && estadoActual === 'ASIGNADO') {
-            const idUsuario = req.user.id_usuario || req.user.id;
-            if (idUsuario !== reporte.funcionario_id && rolUsuario !== 'ALCALDIA') {
-                return res.status(403).json({ message: 'Solo el funcionario asignado puede iniciar el proceso' });
-            }
-        }
-
         await Report.update(updateData, { where: { id_reporte: id } });
 
-        res.json({ message: 'Estado actualizado correctamente', estado: nuevo_estado });
+        res.json({ message: 'Estado actualizado correctamente', estado: nuevoEstado });
     } catch (error) {
         console.error('Error al cambiar estado:', error);
         res.status(500).json({ message: 'Error interno del servidor' });

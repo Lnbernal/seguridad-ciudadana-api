@@ -72,7 +72,7 @@ app.use(cors({
         'https://seguridad-ciudadana-web.vercel.app',
         'https://seguridad-ciudadana-hr0kbzulq-lnbernals-projects.vercel.app'
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));

@@ -1,4 +1,4 @@
-//funcionamiento local
+//funcionamiento local 
 /*
 const { Sequelize } = require('sequelize');
 
@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     process.env.MYSQLPASSWORD,
 
     {
-        host: process.env.DB_HOST,
+        host: process.env.MYSQLHOST,
         port: process.env.MYSQLPORT,
         dialect: 'mysql',
         logging: false
