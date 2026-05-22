@@ -41,6 +41,15 @@ const User = sequelize.define('usuarios', {
     estado: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
+    },
+    // models/User.js - agrega este campo junto a los demás
+    id_rol: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'roles',
+            key: 'id_rol'
+        }
     }
 
 });

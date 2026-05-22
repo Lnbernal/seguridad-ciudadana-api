@@ -51,6 +51,7 @@ const municipalitySeeder = require('./seeders/municipalitySeeder');
 const categorySeeder = require('./seeders/categorySeeder');
 const statusSeeder = require('./seeders/statusSeeder');
 const AdminSeeder = require('./seeders/adminSeeder');
+const UserSeeder = require('./seeders/userSeeder');
 
 /*
 |--------------------------------------------------------------------------
@@ -300,6 +301,9 @@ async function startServer() {
 
         await AdminSeeder();
         console.log('Administrador cargado');
+
+        await UserSeeder();
+        console.log('Usuarios cargados');
 
         // Iniciar servidor
         app.listen(PORT, () => {
