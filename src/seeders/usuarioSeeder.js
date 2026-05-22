@@ -9,7 +9,7 @@ const usuarios = [
     correo: 'ciudadano@test.com',
     contraseña: '123456',
     telefono: '3000000001',
-    direccion: 'Calle 1',
+    direccion: 'Calle 1', 
     id_rol: 1,
     estado: true
   },

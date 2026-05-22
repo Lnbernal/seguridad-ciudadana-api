@@ -51,7 +51,7 @@ const municipalitySeeder = require('./seeders/municipalitySeeder');
 const categorySeeder = require('./seeders/categorySeeder');
 const statusSeeder = require('./seeders/statusSeeder');
 const AdminSeeder = require('./seeders/adminSeeder');
-const UserSeeder = require('./seeders/userSeeder');
+const UserSeeder = require('./seeders/usuarioSeeder');
 
 /*
 |--------------------------------------------------------------------------
