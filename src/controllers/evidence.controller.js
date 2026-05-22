@@ -1,5 +1,6 @@
 const Evidence = require('../models/Evidence');
 const Report = require('../models/Report');
+const cloudinary = require('../config/cloudinary');
 
 /*
 |--------------------------------------------------------------------------
@@ -16,8 +17,19 @@ const uploadEvidence = async (req, res) => {
             });
         }
 
+        const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                { folder: 'evidencias' },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            stream.end(req.file.buffer);
+        });
+
         const evidence = await Evidence.create({
-            archivo_url: req.file.filename,
+            archivo_url: result.secure_url,
             tipo_archivo: req.file.mimetype,
             id_reporte
         });
@@ -26,9 +38,9 @@ const uploadEvidence = async (req, res) => {
             message: 'Evidencia subida correctamente',
             evidence
         });
+
     } catch (error) {
         console.error('Error subiendo evidencia:', error);
-
         res.status(500).json({
             message: 'Error subiendo evidencia'
         });
@@ -55,7 +67,6 @@ const getEvidences = async (req, res) => {
         res.json(evidences);
     } catch (error) {
         console.error('Error obteniendo evidencias:', error);
-
         res.status(500).json({
             message: 'Error obteniendo evidencias'
         });
@@ -89,7 +100,6 @@ const getEvidenceById = async (req, res) => {
         res.json(evidence);
     } catch (error) {
         console.error('Error obteniendo evidencia:', error);
-
         res.status(500).json({
             message: 'Error obteniendo evidencia'
         });
@@ -113,7 +123,6 @@ const getEvidencesByReport = async (req, res) => {
         res.json(evidences);
     } catch (error) {
         console.error('Error obteniendo evidencias del reporte:', error);
-
         res.status(500).json({
             message: 'Error obteniendo evidencias del reporte'
         });
@@ -144,7 +153,6 @@ const deleteEvidence = async (req, res) => {
         });
     } catch (error) {
         console.error('Error eliminando evidencia:', error);
-
         res.status(500).json({
             message: 'Error eliminando evidencia'
         });
