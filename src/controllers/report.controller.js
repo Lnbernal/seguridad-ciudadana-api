@@ -339,63 +339,128 @@ const changeStatus = async (req, res) => {
         const { id } = req.params;
         const { nuevo_estado } = req.body;
 
-        // 1. Obtener reporte actual con estado y funcionario asignado
+        console.log('Estado recibido:', nuevo_estado);
+
+        // 1. Obtener reporte actual
         const reporte = await Report.findByPk(id, {
             include: [
-                { model: ReportStatus, attributes: ['nombre_estado'] },
-                { model: User, as: 'funcionario', attributes: ['id_usuario'] }
+                {
+                    model: ReportStatus,
+                    attributes: ['id_estado', 'nombre_estado']
+                },
+                {
+                    model: User,
+                    as: 'funcionario',
+                    attributes: ['id_usuario']
+                }
             ]
         });
 
         if (!reporte) {
-            return res.status(404).json({ message: 'Reporte no encontrado' });
+            return res.status(404).json({
+                message: 'Reporte no encontrado'
+            });
         }
 
+        // 2. Obtener estado actual
         const estadoActualNombre =
             reporte.estados_reporte?.nombre_estado ||
             reporte.ReportStatus?.nombre_estado ||
             reporte.estado?.nombre_estado;
 
         const estadoActual = normalizarEstado(estadoActualNombre);
+
+        console.log('Estado actual:', estadoActual);
+
         if (!estadoActual) {
-            return res.status(500).json({ message: 'El reporte no tiene estado asociado' });
+            return res.status(500).json({
+                message: 'El reporte no tiene estado asociado'
+            });
         }
 
-        // 2. Verificar permisos según transiciones
+        // 3. Normalizar nuevo estado
         const nuevoEstado = normalizarEstado(nuevo_estado);
+
+        console.log('Nuevo estado normalizado:', nuevoEstado);
+
+        // 4. Validar transición
         const transicionesPorRol = TRANSICIONES[estadoActual];
+
         if (!transicionesPorRol) {
-            return res.status(400).json({ message: `No se permiten cambios desde '${estadoActual}'` });
+            return res.status(400).json({
+                message: `No se permiten cambios desde '${estadoActual}'`
+            });
         }
 
         const rolUsuario = normalizarEstado(req.user.rol);
-        const estadosPermitidos = transicionesPorRol[rolUsuario] || [];
+
+        console.log('Rol usuario:', rolUsuario);
+
+        const estadosPermitidos =
+            transicionesPorRol[rolUsuario] || [];
+
+        console.log('Estados permitidos:', estadosPermitidos);
+
         if (!estadosPermitidos.includes(nuevoEstado)) {
             return res.status(400).json({
                 message: `No puedes pasar de '${estadoActual}' a '${nuevoEstado}' con tu rol`
             });
         }
 
-        // 3. Buscar ID del nuevo estado
-        const estadoDestino = await ReportStatus.findOne({
-            where: { nombre_estado: nuevoEstado }
-        });
+        // 5. Buscar estado en BD de forma flexible
+        const estados = await ReportStatus.findAll();
+
+        console.log(
+            'Estados BD:',
+            estados.map(e => ({
+                original: e.nombre_estado,
+                normalizado: normalizarEstado(e.nombre_estado)
+            }))
+        );
+
+        const estadoDestino = estados.find(e =>
+            normalizarEstado(e.nombre_estado) === nuevoEstado
+        );
+
         if (!estadoDestino) {
-            return res.status(400).json({ message: 'El estado especificado no existe' });
+            return res.status(400).json({
+                message: 'El estado especificado no existe'
+            });
         }
 
-        // 4. Construir objeto de actualización
-        const updateData = { id_estado: estadoDestino.id_estado };
+        console.log('Estado encontrado:', estadoDestino.nombre_estado);
 
-        if (estadoActual === 'PENDIENTE' && nuevoEstado === 'EN_PROCESO') {
-            updateData.operador_id = req.user.id_usuario || req.user.id;
+        // 6. Construir actualización
+        const updateData = {
+            id_estado: estadoDestino.id_estado
+        };
+
+        // Asignar operador automáticamente
+        if (
+            estadoActual === 'PENDIENTE' &&
+            nuevoEstado === 'EN_PROCESO'
+        ) {
+            updateData.operador_id =
+                req.user.id_usuario || req.user.id;
         }
-        await Report.update(updateData, { where: { id_reporte: id } });
 
-        res.json({ message: 'Estado actualizado correctamente', estado: nuevoEstado });
+        // 7. Actualizar reporte
+        await Report.update(updateData, {
+            where: { id_reporte: id }
+        });
+
+        res.json({
+            message: 'Estado actualizado correctamente',
+            estado: estadoDestino.nombre_estado
+        });
+
     } catch (error) {
         console.error('Error al cambiar estado:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
+        });
     }
 };
 
